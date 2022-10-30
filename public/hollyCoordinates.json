@@ -1,0 +1,36 @@
+{
+  "hollywood": [
+    {
+      "name": "wizard",
+      "coord": {
+        "x": 2070,
+        "y": 1305
+      }
+    },
+
+    {
+      "name": "waldo",
+      "coord": {
+        "x": 2110,
+        "y": 830
+      }
+    },
+    {
+      "name": "odlaw",
+      "coord": {
+        "x": 1670,
+        "y": 1540
+      }
+    },
+    {
+      "name": "wilma",
+      "coord": {
+        "x": 1775,
+        "y": 1305
+      }
+    }
+  ],
+  "olympics": [],
+  "space": [],
+  "green": []
+}
