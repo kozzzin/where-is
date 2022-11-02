@@ -59,6 +59,8 @@
   z-index: 99999;
   background: rgba(255,255,255,0.3);
   background-clip: content-box;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .cursor.absolute {
@@ -157,8 +159,24 @@ header {
   position: fixed;
   top: 0;
   width: 100%;
+  z-index: 999999;
 }
 
 header > * {
   margin: 0;
+}
+
+.found-marker {
+  position: absolute;
+  display: block;
+  background: transparent;
+  height: 100px;
+  width: 100px;
+  border-radius: 100%;
+  border: 5px solid white;
+  cursor: none;
+}
+
+.img-container {
+  position: relative;
 }

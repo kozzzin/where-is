@@ -1,0 +1,18 @@
+[
+  {
+    "level": "hollywood",
+    "times": [19,104,85]
+  },
+  {
+    "level": "olympics",
+    "times": [70,90,20]
+  },
+  {
+    "level": "space",
+    "times": [40,30,60]
+  },
+  {
+    "level": "green",
+    "times": [70,90,40]
+  }
+]
