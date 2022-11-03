@@ -56,11 +56,12 @@
   border: 5px dashed white;
   top: 0;
   left: 0;
-  z-index: 99999;
+  z-index: 9999;
   background: rgba(255,255,255,0.3);
   background-clip: content-box;
+  /* background: url('./imgs/waldo01.jpeg'); */
   background-repeat: no-repeat;
-  background-attachment: fixed;
+  /* background-attachment: fixed; */
 }
 
 .cursor.absolute {
@@ -159,7 +160,7 @@ header {
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 999999;
+  z-index: 99999;
 }
 
 header > * {
@@ -179,4 +180,91 @@ header > * {
 
 .img-container {
   position: relative;
+}
+
+.green {
+  background-color: green;
+  cursor: none;
+}
+
+.leaderboard a {
+  color: rgb(191, 250, 180);
+  text-decoration: none;
+  border-bottom: 1px dotted rgb(191, 250, 180);
+}
+
+.leaderboard-table {
+  position: absolute;
+  display: block;
+  right: 1px;
+  top: 79px;
+  z-index: 99999;
+  background-color: rgba(0,0,0,0.6);
+  color: #fff;
+  text-align: left;
+  padding: 30px;
+  width: 200px;
+  transition: 0.4s all ease-in;
+}
+
+.leaderboard-table ul {
+  list-style: none;
+  text-align: left;
+  margin: 0;
+  padding: 0;
+}
+
+.leaderboard-table ul li {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.leaderboard-table ul li span:last-child {
+  padding-left: 10px;
+}
+
+.ask-name {
+  background-color: rgba(0,0,0,0.6);
+  display: flex;
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 100vw;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  z-index: 99999;
+  /* left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%); */
+}
+
+.ask-name form {
+
+}
+
+#select-level {
+  /* appearance: none; */
+  background-color: transparent;
+  border: 3px solid #fff;
+  padding: 10px 30px 10px 10px;
+  color: #fff;
+  font-weight: bold;
+  margin-left: 10px;
+  width: max-content;
+  appearance: none;
+  cursor: pointer;
+}
+
+#select-level:hover {
+  background-color: rgba(191, 250, 180, 0.6);;
+}
+
+.levels form label::after {
+  content: '↓';
+  display: inline-flex;
+  font-weight: bold;
+  transform: translate(-25px,1px);
 }

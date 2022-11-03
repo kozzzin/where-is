@@ -1,18 +1,86 @@
 [
   {
     "level": "hollywood",
-    "times": [19,104,85]
+    "times": [
+      {
+        "name": "Vitalii",
+        "time": 35
+      },
+      {
+        "name": "Elon Musk and Some Really Long Name to Hold",
+        "time": 90
+      },
+      {
+        "name": "Bill Gates",
+        "time": 70
+      },
+      {
+        "name": "Bob Square Pants",
+        "time": 120
+      }
+    ]
   },
   {
     "level": "olympics",
-    "times": [70,90,20]
+    "times": [
+      {
+        "name": "Vitalii",
+        "time": 90
+      },
+      {
+        "name": "Elon Musk and Some Really Long Name to Hold",
+        "time": 26
+      },
+      {
+        "name": "Bill Gates",
+        "time": 67
+      },
+      {
+        "name": "Bob Square Pants",
+        "time": 22
+      }
+    ]
   },
   {
     "level": "space",
-    "times": [40,30,60]
+    "times": [
+      {
+        "name": "Vitalii",
+        "time": 19
+      },
+      {
+        "name": "Elon Musk and Some Really Long Name to Hold",
+        "time": 120
+      },
+      {
+        "name": "Bill Gates",
+        "time": 60
+      },
+      {
+        "name": "Bob Square Pants",
+        "time": 50
+      }
+    ]
   },
   {
     "level": "green",
-    "times": [70,90,40]
+    "times": [
+      {
+        "name": "Vitalii",
+        "time": 120
+      },
+      {
+        "name": "Elon Musk and Some Really Long Name to Hold",
+        "time": 28
+      },
+      {
+        "name": "Bill Gates",
+        "time": 45
+      },
+      {
+        "name": "Bob Square Pants",
+        "time": 39
+      }
+    ]
   }
 ]

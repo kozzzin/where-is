@@ -8,6 +8,11 @@ import CursorDiv from './CursorDiv';
 import CursorExtra from './CursorExtra';
 import Header from './Header.js';
 import FoundMarker from './FoundMarker';
+import AskName from './AskName';
+
+export const MyContext = React.createContext('content');
+
+// !!! Keep track of how long it takes between when the photo is first loaded and when the user finally identifies all characters (do this on the server side otherwise the user could hack their score).
 
 function App() {
 
@@ -42,20 +47,27 @@ function App() {
   const [ bestTime, setBestTime ] = React.useState(0);
   const [ currentTime, setCurrentTime ] = React.useState(0);
   const [ bestTimes, setBestTimes ] = React.useState([]);
-
+  const [ levelBestTimes, setLevelBestTimes ] = React.useState([]);
+  const [ stopCounter, setStopCounter ] = React.useState(false);
+  const [ leaderName, setLeaderName ] = React.useState('');
+  const [ showNameForm, setShowNameForm ] = React.useState(false);
 
   function getNaturalCoordinates(cursorPosition, currentImage) {
+    // use scroll position !!!
     const clickPositionX = cursorPosition.x;
     const naturalWidth = currentImage.naturalWidth;
     const currentWidth = currentImage.width;
     const naturalClickPosX = 
       (naturalWidth / currentWidth) * clickPositionX;
 
-    const clickPositionY = cursorPosition.y;
+    const clickPositionY = cursorPosition.yOffset;
     const naturalHeight = currentImage.naturalHeight;
     const currentHeight = currentImage.height;
     const naturalClickPosY = 
       (naturalHeight / currentHeight) * clickPositionY;
+
+      // console.log(naturalHeight,currentHeight);
+      // console.log(naturalClickPosX, naturalClickPosY)
     
     return {
       x: naturalClickPosX,
@@ -65,9 +77,15 @@ function App() {
 
   React.useEffect(() => {
     console.log('CHECKING SAVED LEVEL');
-    if (window.localStorage.length === 0) return;
+    if (window.localStorage.length === 0) {
+      setCurrentLevel(levels[0]);
+      return;
+    }
     const savedLevel = JSON.parse(window.localStorage.getItem('currentLevel'));
-    if (Object.keys(savedLevel).length === 0) return;
+    if (Object.keys(savedLevel).length === 0)  {
+      setCurrentLevel(levels[0]);
+      return;
+    }
     setCurrentLevel(savedLevel);
   }, []);
 
@@ -76,47 +94,65 @@ function App() {
       setCounter((prevCounter) => prevCounter + 1);
     }, 1000);
 
+    if (stopCounter) {
+      clearInterval(interval);
+    }
     // end counter on finished time
     // stop counter on game finish
 
     return () => clearInterval(interval);
-  },[])
+  },[stopCounter])
+
+  React.useEffect(() => {
+    document.querySelector('.cursor')
+      .style.backgroundImage = `url(${ currentLevel.img })`;
+  },[currentLevel]);
 
   React.useEffect(() => {
 
     const currentImage = document.querySelector('.main-image');
     const naturalCoords = getNaturalCoordinates(cursorPosition,currentImage);
 
-    document.querySelector('.cursor')
-      .style.cssText = `
-        display: ${cursorDisplay};
-        top: ${cursorPosition.y}px;
-        left: ${cursorPosition.x}px;
-        background-image: url(${ currentLevel.img });
-        background-position: ${-1 * (naturalCoords.x-50)}px -${naturalCoords.y-50-(cursorPosition.scroll < 0 ? cursorPosition.scroll + 25 : cursorPosition.scroll )}px ;
-      `;
+    
+    // SCROLL PROBLEM WITH SAFARI !!!
+    // SAFARI: when save name see cursor -> hide cursor
+    // if not save result, it will be seen on next level too -> close name modal
+    // compare my result with worst result for now -> on page or not --> saving to list --> give names to anonyms --> anonym + datetime !!
 
+    const cursor = document.querySelector('.cursor');
+    cursor.style.display = `${cursorDisplay}`;
+    cursor.style.top = `${cursorPosition.y}px`;
+    cursor.style.left = `${cursorPosition.x}px`;
+    cursor.style.backgroundPosition = `
+      ${ Math.floor( -1 * (naturalCoords.x - 50)) }px
+      ${ -1 *
+        Math.floor(
+          naturalCoords.y-50
+          // naturalCoords.y - 50 -
+          //   (
+          //     cursorPosition.scroll < 0 ?
+          //       cursorPosition.scroll + 25 + 50 : cursorPosition.scroll
+          //   )
+        )
+        }px`;
 
-    // ON PAGE RELOAD --> save curent level --> add router?
-    // CLEAR OR STYLES ON CURSOR SUBMENU
+    // USE SCROLL ON natural coordinates, because we couldn't check answer
 
-  },[cursorPosition,cursorDisplay,currentLevel]);
+    // document.querySelector('.cursor')
+    //   .style.cssText = `
+    //     background-position: ${ Math.floor( -1 * (naturalCoords.x-50)) }px -${ Math.floor(naturalCoords.y-50-(cursorPosition.scroll < 0 ? cursorPosition.scroll + 25 : cursorPosition.scroll )) }px ;
+    // //   `;
 
+  },[cursorPosition,cursorDisplay]);
 
-
-
-
-  // React.useEffect(
-  //   () => {
-      
-  //   }, [currentLevel]
-  // )
 
   React.useEffect(
     () => {
       if (isLevelFinished(rightAnswers)) {
         alertCounter();
         setCurrentTime(counter);
+        setStopCounter(true);
+        // next level !
       }
     }, [rightAnswers]
   );
@@ -132,6 +168,11 @@ function App() {
       setMarkersList([]);
       setCounter(0);
       setRightAnswers(0);
+      document.querySelectorAll('.green').forEach(
+        green => {
+          green.classList.remove('green');
+        }
+      );
     }, [currentLevel]
   );
   
@@ -156,12 +197,16 @@ function App() {
     if (bestTimes.length <= 0) return;
 
     const level = currentLevel.name;
-    const time = 
+    const times = 
       [
         ...bestTimes.find(el => el.level === level).times
-      ].sort((a,b) => a - b);
-    
-      setBestTime(time[0]);
+      ].sort((a,b) => a.time - b.time);
+
+    console.log(times);
+    console.log(times);
+
+    setLevelBestTimes(times);
+    setBestTime(times[0]['time']);
 
   },[currentLevel, bestTimes]);
 
@@ -179,8 +224,12 @@ function App() {
             {...oldBest, times: oldBest.times };
         }
       ));
+      setShowNameForm(true);
       // write new time save
       // update and save bestTimes
+
+          // save to scoreboard if it is beaten
+    // we're saving time for current level
     }
   }
 
@@ -201,9 +250,18 @@ function App() {
   }
 
   function moveCursor(event) {
+    // console.log('y top scroll', document.querySelector('.main-image').y);
+    // console.dir(document.querySelector('.main-image'));
+    // console.log('PAGEY YYY',event.pageY);
+    // console.dir(event);
+    // console.log(event.nativeEvent.offsetY);
+    // console.log('simple top scroll', document.scrollTop);
     setCursorPosition({
+      // x: event.pageX,
+      // y: event.pageY,
       x: event.pageX,
       y: event.pageY,
+      yOffset: event.nativeEvent.offsetY,
       scroll: document.querySelector('.main-image').y
     });
     setCursorDisplay('block');
@@ -213,6 +271,7 @@ function App() {
     setCursorPosition({
       x: event.pageX,
       y: event.pageY,
+      yOffset: event.nativeEvent.offsetY,
       scroll: document.querySelector('.main-image').y
     });
 
@@ -236,8 +295,10 @@ function App() {
       return (
         (character.x - 50) < naturalCoords.x)
           && (naturalCoords.x < (character.x + 50)
-          && (character.y - 50) < naturalCoords.y-cursorPosition.scroll)
-          && (naturalCoords.y-cursorPosition.scroll < (character.y + 50)
+          && (character.y - 50) < naturalCoords.y)
+          && (naturalCoords.y < (character.y + 50)
+          // && (character.y - 50) < naturalCoords.y-cursorPosition.scroll)
+          // && (naturalCoords.y-cursorPosition.scroll < (character.y + 50)
       );
     }
 
@@ -245,8 +306,7 @@ function App() {
     const characterFound = checkUserAnswer(character)
 
     if (characterFound) {
-      event.target.style.backgroundColor = 'green';
-      event.target.style.cursor = 'none';
+      event.target.classList.add('green');
       addFoundMarker(event.pageX,event.pageY);
       setCursorMenu(false);
       setRightAnswers(rightAnswers + 1);
@@ -256,18 +316,17 @@ function App() {
         event.target.style.backgroundColor = '';
       },500);
     }
-    // CHECK IF 4 found, reset timer 
-    // fix time
-    // save to scoreboard if it is beaten
-    // we're saving time for current level
   }
+
+  // MARKER BUG: with scroll it puts scroll higher !!!!
 
   function addFoundMarker(x,y) {
     return setMarkersList(
       [ ...markersList, 
         {
           x: cursorPosition.x,
-          y: cursorPosition.y - cursorPosition.scroll / 2,
+          // y: cursorPosition.y - cursorPosition.scroll / 2,
+          y: cursorPosition.yOffset,
           zoomX: document.querySelector('.main-image').width,
           zoomY: document.querySelector('.main-image').height,
         }
@@ -287,16 +346,57 @@ function App() {
     setCurrentLevel(level);
   }
 
+  function saveNameChange(event) {
+    setLeaderName(event.target.value);
+  }
+
+  function saveNameSubmit(event) {
+    // store result
+    // save name
+    // update everywhere
+    event.preventDefault();
+    console.log(leaderName);
+    setShowNameForm(false);
+    // NEXT LEVEL !
+  }
+
   return (
     <>
       <div className="App">
-        <Header
-          levelChange = { levelChangeHandler }
-          currentLevel = { currentLevel.name }
-          counter = { counter }
-          counterConverter = { counterConverter }
-          bestTime = { bestTime }
-        />
+        <MyContext.Provider
+          value={
+            {
+              counterConverter: counterConverter,
+              leaders: levelBestTimes,
+              // leaders: [
+              //   {
+              //     name: 'Vitalii',
+              //     time: 35
+              //   },
+              //   {
+              //     name: 'Elon Musk and Some Really Long Name to Hold',
+              //     time: 90
+              //   },
+              //   {
+              //     name: 'Bill Gates',
+              //     time: 70
+              //   },
+              //   {
+              //     name: 'Bob Square Pants',
+              //     time: 120
+              //   }
+              // ]
+            }
+          }>
+          <Header
+            levelChange = { levelChangeHandler }
+            currentLevel = { currentLevel.name }
+            counter = { counter }
+            counterConverter = { counterConverter }
+            bestTime = { bestTime }
+          />
+        </MyContext.Provider>
+
         <div className='img-container'>
 
           <img 
@@ -339,6 +439,15 @@ function App() {
           closeClick = { cursorMenuClose }
         />
 
+        {
+          showNameForm &&  <AskName
+          saveNameChange = { saveNameChange }
+          saveNameSubmit = { saveNameSubmit }
+          leaderName = { leaderName }
+         />
+        }
+
+        { /* SAVE RESULT OF TIME WITH NAME + LOCALSTOPRAGE  */ }
 
         
       </div>
