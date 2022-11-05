@@ -7,6 +7,7 @@ export default function Leaderboard(props) {
   // remove sort from rendering !!!
   return (
     <div className="leaderboard-table">
+      {/* <h3>{ context.currentLevelName }</h3> */}
       <ul>
         { [...context.leaders]
           .map(

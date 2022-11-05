@@ -1,5 +1,7 @@
 import React from "react";
 import Leaderboard from "./Leaderboard";
+import { Select } from 'react';
+
 
 export default function Header(props) {
 
@@ -9,42 +11,43 @@ export default function Header(props) {
     setShowLeaderboard(!showLeaderboard);
   }
 
-  function isSelected(currentValue) {
-    console.log(currentValue === props.currentLevel);
-    if (currentValue === props.currentLevel) {
-      return true;
-    } else {
-      return '';
-    }
+  function getDefaultOption() {
+    return window.localStorage.length  === 0 ? 'hollywood' : JSON.parse(window.localStorage.getItem('currentLevel')).name;
   }
+  
 
-
-
-  function getCurrentLevel() {
-    try {
-      return JSON.parse(window.localStorage.getItem('currentLevel')).name;
-    } catch(err) {
-      console.log(err);
-      return 'hollywood';
-    }
-  }
+  // selected = { level[0] === getDefaultOption() ? true : false }
 
   return (
     <>
       <header>
-        <h1>Waldomania</h1>
+        <a href="/">
+          <h1>Waldomania</h1>
+        </a>
         <ul className="levels">
-          <form>
-            <label> Choose level:
+           <form>
+            <label>Choose level:
               <select
                 id="select-level"
-                defaultValue={ getCurrentLevel() }
+                value ={ getDefaultOption() }
                 onChange = { props.levelChange }
               >
-                <option value="hollywood">Hollywoood</option>
-                <option value="olympics">Olympics</option>
-                <option value="space">Space</option>
-                <option value="green">Green</option>
+                {
+                  [
+                    ["hollywood", "Hollywood"],
+                    ["olympics", "Olympics"],
+                    ["space", "In space"],
+                    ["green", "Vegetables"]
+                  ].map(
+                    (level) => {
+                      return <option
+                        key = { level[0] }
+                        value={ level[0] }>
+                          { level[1] }
+                      </option>
+                    }
+                  )
+                }
               </select>
             </label>
           </form>

@@ -5,7 +5,7 @@ export default function FoundMarker(props) {
     <div 
       className="found-marker"
       onMouseMove={ props.hover }
-      // FIX MARKER WHEHN USI=NG SCROLL !!!
+      // trouble on hover !!!
       style = {
         {
           "top": `

@@ -39,6 +39,10 @@
   }
 }
 
+h1 {
+  margin: 0;
+}
+
 .main-image {
   max-width: 100%;
   cursor: none;
@@ -120,6 +124,7 @@
 
 .clock-22-circle {
   transform: translate(-78px, -39px);
+  display: none;
 }
 
 .extra-cursors {
@@ -128,7 +133,7 @@
   height: 284px;
   width: 264px;
   display: block;
-  z-index: 99;
+  z-index: 99999;
   transform: translate(-50%, -50%);
   align-items: center;
   justify-content: center;
@@ -187,9 +192,13 @@ header > * {
   cursor: none;
 }
 
+a {
+  text-decoration: none;
+  color: #fff;
+}
+
 .leaderboard a {
   color: rgb(191, 250, 180);
-  text-decoration: none;
   border-bottom: 1px dotted rgb(191, 250, 180);
 }
 
@@ -224,7 +233,7 @@ header > * {
   padding-left: 10px;
 }
 
-.ask-name {
+.dark-background {
   background-color: rgba(0,0,0,0.6);
   display: flex;
   position: absolute;
@@ -234,11 +243,9 @@ header > * {
   width: 100vw;
   align-items: center;
   justify-content: center;
+  flex-flow: column wrap;
   color: #fff;
   z-index: 99999;
-  /* left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%); */
 }
 
 .ask-name form {
@@ -267,4 +274,16 @@ header > * {
   display: inline-flex;
   font-weight: bold;
   transform: translate(-25px,1px);
+}
+
+.img-move {
+  /* background-color: rgba(0,0,0,0.1); */
+  z-index: 9999;
+  display: block;
+  height: 100%;
+  width: 100vw;
+  position: absolute;
+  left: 0;
+  top: 0;
+  cursor: none;
 }
