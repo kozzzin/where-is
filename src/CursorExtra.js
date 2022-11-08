@@ -45,6 +45,7 @@ export default function CursorExtra(props) {
   ];
   return (
     <>
+      { 
       <div
         className='extra-cursors'
         style = {
@@ -94,6 +95,7 @@ export default function CursorExtra(props) {
           }
         </div>
       </div>
+      }
     </>
   );
 }

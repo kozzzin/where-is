@@ -3,22 +3,21 @@ import olympicsImg from './imgs/waldo02.jpeg';
 import spaceImg from './imgs/waldo03.jpeg';
 import greenImg from './imgs/waldo04.jpeg';
 import './App.css';
-import React, {  } from 'react';
-import CursorDiv from './CursorDiv';
+import React, { useEffect } from 'react';
+import ZoomCursor from './ZoomCursor';
 import CursorExtra from './CursorExtra';
 import Header from './Header.js';
-import FoundMarker from './FoundMarker';
 import NextLevelTimer from './NextLevelTimer';
 import YourTime from './YourTime';
+import GameBoard from './GameBoard';
 
 export const MyContext = React.createContext('content');
 
-// saving name to localstorage
-// you re the champion in the end
 // firebase connect
-// --> give names to anonyms --> anonym + datetime !!
+// function to check results
+// save best results with names
+// you re the champion in the end -> congrats if beat the result
 
-// clean top level, make refactoring ±
 
 
 function App() {
@@ -42,19 +41,24 @@ function App() {
   ];
 
   const [ secret, setSecret ] = React.useState([]);
+
   const [ cursorMenu, setCursorMenu ] = React.useState(false);
   const [ cursorPosition, setCursorPosition ] = React.useState({x:0,y:0});
   const [ cursorDisplay, setCursorDisplay ] = React.useState('none');
+
   const [ currentLevel, setCurrentLevel ] = React.useState({});
   const [ markersList, setMarkersList ] = React.useState([]);
-  const [ counter, setCounter ] = React.useState(0);
-  const [ rightAnswers, setRightAnswers ] = React.useState(0);
+
+  const [ bestTimes, setBestTimes ] = React.useState([]);
+  const [ levelBestTimes, setLevelBestTimes ] = React.useState([]);
   const [ bestTime, setBestTime ] = React.useState(0);
   const [ lastLeaderTime, setLastLeaderTime ] = React.useState(0);
   const [ currentTime, setCurrentTime ] = React.useState(0);
-  const [ bestTimes, setBestTimes ] = React.useState([]);
-  const [ levelBestTimes, setLevelBestTimes ] = React.useState([]);
+ 
+  const [ counter, setCounter ] = React.useState(0);
   const [ stopCounter, setStopCounter ] = React.useState(false);
+
+  const [ rightAnswers, setRightAnswers ] = React.useState(0);
   const [ leaderName, setLeaderName ] = React.useState('');
   const [ showNameForm, setShowNameForm ] = React.useState(false);
   const [ showCountdown, setShowCountdown ] = React.useState(false);
@@ -69,21 +73,38 @@ function App() {
         });
   },[]);
 
+
   // LOAD LEADERS SCOREBOARD
   React.useEffect(() => {
     // checkAtFirstLocalStorage for results !
-    fetch('./bestTimes.json')
-    .then(response => response.json())
-      .then(data => {
-        setBestTimes(data);
-      });
+    if (localStorage.getItem("bestTimes") === null) {
+      fetch('./bestTimes.json')
+        .then(response => response.json())
+          .then(data => {
+            setBestTimes(data);
+          });
+    } else {
+      setBestTimes(
+        JSON.parse(window.localStorage.getItem('bestTimes'))
+        );
+    }
   },[]);
 
-  // SET LEADERBOARD
+  // SAVE UPDATED LEADERBOARD
+  React.useEffect(() => {
+    if (bestTimes.length > 0) {
+      window.localStorage.setItem(
+        'bestTimes',
+        JSON.stringify(bestTimes)
+      );
+    }
+  }, [bestTimes]);
+
+
+  // SET DATA FOR LEADERBOARD
   // SET LEVEL'S BEST TIME
   React.useEffect(() => {
     if (bestTimes.length <= 0) return;
-
     const level = currentLevel.name;
     const times = 
       [
@@ -91,25 +112,29 @@ function App() {
       ]
         .sort((a,b) => a.time - b.time)
         .slice(0,10);
-
     setLevelBestTimes(times);
     setBestTime(times[0]['time']);
     setLastLeaderTime(times.slice(-1)[0]['time']);
   },[currentLevel, bestTimes]);
 
+
   // CHECK SAVED LEVEL
   React.useEffect(() => {
-    if (window.localStorage.length === 0) {
-      setCurrentLevel(levels[0]);
-      return;
-    }
-    const savedLevel = JSON.parse(window.localStorage.getItem('currentLevel'));
-    if (Object.keys(savedLevel).length === 0)  {
-      setCurrentLevel(levels[0]);
-      return;
-    }
-    setCurrentLevel(savedLevel);
+    let level = 
+      JSON.parse(window.localStorage.getItem('currentLevel')) || levels[0];
+    setCurrentLevel(level);
+    // if (window.localStorage.length === 0) {
+    //   setCurrentLevel(levels[0]);
+    //   return;
+    // }
+    // const savedLevel = ;
+    // if (Object.keys(savedLevel).length === 0)  {
+    //   setCurrentLevel(levels[0]);
+    //   return;
+    // }
+    // setCurrentLevel(savedLevel);
   }, []);
+
 
   // START NEW LEVEL
   React.useEffect(
@@ -126,39 +151,6 @@ function App() {
     }, [currentLevel]
   );
 
-  // SET COUNTER
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setCounter((prevCounter) => prevCounter + 1);
-    }, 1000);
-
-    if (stopCounter) {
-      clearInterval(interval);
-    }
-
-    return () => clearInterval(interval);
-  },[stopCounter])
-
-  // INIT ZOOM LENS
-  React.useEffect(() => {
-    document.querySelector('.cursor')
-      .style.backgroundImage = `url(${ currentLevel.img })`;
-  },[currentLevel]);
-
-  // ZOOM LENS LOGIC
-  React.useEffect(() => {
-
-    const currentImage = document.querySelector('.main-image');
-    const naturalCoords = getNaturalCoordinates(cursorPosition,currentImage);
-    const cursor = document.querySelector('.cursor');
-    cursor.style.display = `${cursorDisplay}`;
-    cursor.style.top = `${cursorPosition.y}px`;
-    cursor.style.left = `${cursorPosition.x}px`;
-    cursor.style.backgroundPosition = `
-      ${ -1 * (naturalCoords.x - 50) }px
-      -${naturalCoords.y-50}px`;
-  },[cursorPosition,cursorDisplay]);
-
 
   // CHECK IF GAME HAS ENDED
   React.useEffect(
@@ -169,6 +161,7 @@ function App() {
       }
     }, [rightAnswers]
   );
+  
 
   // CHECK SCORE
   React.useEffect(
@@ -181,6 +174,7 @@ function App() {
   function counterConverter(counter) {
     return `${ String(Math.floor(counter / 60)).padStart(2,'0') }:${ String(Math.floor(counter % 60)).padStart(2,'0') }`
   }
+
 
   // CURSOR LOGIC
   function getNaturalCoordinates(cursorPosition, currentImage) {
@@ -201,7 +195,6 @@ function App() {
       y: naturalClickPosY,
     }
   }
-
 
   function moveCursor(event) {
     setCursorPosition({
@@ -233,19 +226,12 @@ function App() {
       addFoundMarker(event.pageX,event.pageY);
       setRightAnswers(rightAnswers + 1);
       setCursorMenu(false);
-      setTimeout(() => {
-       
-      }, 500);
-      
     } else {
       event.target.style.backgroundColor = 'red';
       setTimeout(()=>{
         event.target.style.backgroundColor = '';
       },500);
     }
-
-
-
   }
 
   function addFoundMarker(x,y) {
@@ -264,6 +250,7 @@ function App() {
     setCursorMenu(false);
     moveCursor(event);
   }
+
 
   // CHANGE LEVEL LOGIC
   function getRightAnswer(character) {
@@ -301,6 +288,7 @@ function App() {
     changeLevel(level);
   }
 
+
   // END LEVEL LOGIC
   function isLevelFinished(answers) {
     if (answers === 4) {
@@ -325,16 +313,21 @@ function App() {
     setShowYourTime(false);
   }
 
+  function getUniqId() {
+    return Date.now().toString().slice(-4);
+  }
+
   function saveNameSubmit(event) {
     event.preventDefault();
-    console.log(leaderName);
     // handle empty name
     // if is empty make anonymus with date
     // save to localstorage ?
+    const checkedLeadername = leaderName == '' ? 
+      `Anonymus ${getUniqId()}` : leaderName;
     setBestTimes(oldBests => oldBests.map(
       (oldBest) => {
         return oldBest.level === currentLevel.name ? 
-          {...oldBest, times: [...oldBest.times, {name: leaderName, time: currentTime}] } :
+          {...oldBest, times: [...oldBest.times, {name: checkedLeadername, time: currentTime}] } :
           {...oldBest, times: oldBest.times };
       }
     ));
@@ -354,6 +347,7 @@ function App() {
     <>
       <div className="App">
         { showCountdown && <NextLevelTimer setShowCountdown = { setShowCountdown } showCountdown = { showCountdown } /> }
+
         <MyContext.Provider
           value={
             {
@@ -366,37 +360,29 @@ function App() {
             levelChange = { levelChangeHandler }
             currentLevel = { currentLevel.name }
             counter = { counter }
+            stopCounter = { stopCounter }
+            setCounter = { setCounter }
             counterConverter = { counterConverter }
             bestTime = { bestTime }
           />
         </MyContext.Provider>
 
-        <div className='img-container'>
-            <img 
-              src={ currentLevel.img }
-              alt="waldo game"
-              className='main-image'
-            />
-            { markersList.map(
-            (marker) => {
-              return (
-                <FoundMarker
-                  left = { marker.x }
-                  top = { marker.y }
-                  zoomX = { marker.zoomX }
-                  zoomY = { marker.zoomY }
-                  hover = { moveCursor }
-                />
-              );
-            }
-            ) }
-            <div className='img-move' onMouseMove={ moveCursor } onClick={ clickHandler } />
-        </div>
 
-        <CursorDiv
+        <GameBoard
+          currentLevel = { currentLevel }
+          moveCursor = { moveCursor }
+          clickHandler = { clickHandler }
+          markersList = { markersList }
+        />
+
+        <ZoomCursor
           x = { cursorPosition.x  }
           y = { cursorPosition.y  }
           display = { cursorDisplay }
+          currentLevel = { currentLevel }
+          cursorDisplay = { cursorDisplay }
+          cursorPosition = { cursorPosition }
+          getNaturalCoordinates = { getNaturalCoordinates }
         />
 
         <CursorExtra
@@ -406,18 +392,20 @@ function App() {
           setShowMenu = { setCursorMenu }
           subMenuClick = { cursorMenuClick }
           closeClick = { cursorMenuClose }
+
         />
 
         {
-          showYourTime && <YourTime
-          saveNameChange = { saveNameChange }
-          saveNameSubmit = { saveNameSubmit }
-          leaderName = { leaderName }
-          currentTime = { currentTime }
-          showNameForm = { showNameForm }
-          counterConverter = { counterConverter }
-          startNextLevel = { startNextLevel }
-         />
+          showYourTime && 
+            <YourTime
+            saveNameChange = { saveNameChange }
+            saveNameSubmit = { saveNameSubmit }
+            leaderName = { leaderName }
+            currentTime = { currentTime }
+            showNameForm = { showNameForm }
+            counterConverter = { counterConverter }
+            startNextLevel = { startNextLevel }
+          />
         }
 
       </div>

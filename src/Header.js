@@ -7,20 +7,32 @@ export default function Header(props) {
 
   const [ showLeaderboard, setShowLeaderboard ] = React.useState(false);
 
+    // SET COUNTER
+    React.useEffect(() => {
+      const interval = setInterval(() => {
+        props.setCounter((prevCounter) => prevCounter + 1);
+      }, 1000);
+  
+      if (props.stopCounter) {
+        clearInterval(interval);
+      }
+  
+      return () => clearInterval(interval);
+    },[props.stopCounter])
+
   function showBoard(event) {
     setShowLeaderboard(!showLeaderboard);
   }
 
   function getDefaultOption() {
-    return window.localStorage.length  === 0 ? 'hollywood' : JSON.parse(window.localStorage.getItem('currentLevel')).name;
+    let level = JSON.parse(window.localStorage.getItem('currentLevel')) || { name: 'hollywood'};
+    return level.name;
   }
-  
-
-  // selected = { level[0] === getDefaultOption() ? true : false }
 
   return (
     <>
       <header>
+      {/* set current level, reset counter and so on */}
         <a href="/">
           <h1>Waldomania</h1>
         </a>
