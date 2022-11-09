@@ -10,15 +10,9 @@ import Header from './Header.js';
 import NextLevelTimer from './NextLevelTimer';
 import YourTime from './YourTime';
 import GameBoard from './GameBoard';
+import { getCoordsFromBase, getLeadersForLevel, saveNewLevelLeaders } from './firebase';
 
 export const MyContext = React.createContext('content');
-
-// firebase connect
-// function to check results
-// save best results with names
-// you re the champion in the end -> congrats if beat the result
-
-
 
 function App() {
   const levels = [
@@ -66,38 +60,55 @@ function App() {
 
   // LOAD COORDINATES OF CHARACTERS
   React.useEffect(() => {
-    fetch('./hollyCoordinates.json')
-      .then(response => response.json())
-        .then(data => { 
-          setSecret(data);
-        });
+    // fetch('./hollyCoordinates.json')
+    //   .then(response => response.json())
+    //     .then(data => { 
+    //       setSecret(data);
+    //     });
+
   },[]);
 
 
   // LOAD LEADERS SCOREBOARD
   React.useEffect(() => {
     // checkAtFirstLocalStorage for results !
-    if (localStorage.getItem("bestTimes") === null) {
-      fetch('./bestTimes.json')
-        .then(response => response.json())
-          .then(data => {
-            setBestTimes(data);
-          });
-    } else {
-      setBestTimes(
-        JSON.parse(window.localStorage.getItem('bestTimes'))
-        );
+    async function getLeaders(currentLevel) {
+      getLeadersForLevel(currentLevel.name)
+      .then((response) => {
+        setBestTimes(response.times);
+      })
     }
-  },[]);
+
+    if (currentLevel.name !== undefined) {
+      getLeaders(currentLevel);
+    }
+
+
+    // if (localStorage.getItem("bestTimes") === null) {
+    //   fetch('./bestTimes.json')
+    //     .then(response => response.json())
+    //       .then(data => {
+    //         setBestTimes(data);
+    //       });
+    // } else {
+    //   setBestTimes(
+    //     JSON.parse(window.localStorage.getItem('bestTimes'))
+    //     );
+    // }
+  },[currentLevel]);
 
   // SAVE UPDATED LEADERBOARD
   React.useEffect(() => {
+    // if (bestTimes.length > 0) {
+    //   window.localStorage.setItem(
+    //     'bestTimes',
+    //     JSON.stringify(bestTimes)
+    //   );
+    // }
     if (bestTimes.length > 0) {
-      window.localStorage.setItem(
-        'bestTimes',
-        JSON.stringify(bestTimes)
-      );
+      saveNewLevelLeaders(currentLevel.name, bestTimes);
     }
+    console.log(bestTimes);
   }, [bestTimes]);
 
 
@@ -105,10 +116,9 @@ function App() {
   // SET LEVEL'S BEST TIME
   React.useEffect(() => {
     if (bestTimes.length <= 0) return;
-    const level = currentLevel.name;
     const times = 
       [
-        ...bestTimes.find(el => el.level === level).times
+        ...bestTimes
       ]
         .sort((a,b) => a.time - b.time)
         .slice(0,10);
@@ -123,16 +133,6 @@ function App() {
     let level = 
       JSON.parse(window.localStorage.getItem('currentLevel')) || levels[0];
     setCurrentLevel(level);
-    // if (window.localStorage.length === 0) {
-    //   setCurrentLevel(levels[0]);
-    //   return;
-    // }
-    // const savedLevel = ;
-    // if (Object.keys(savedLevel).length === 0)  {
-    //   setCurrentLevel(levels[0]);
-    //   return;
-    // }
-    // setCurrentLevel(savedLevel);
   }, []);
 
 
@@ -217,8 +217,8 @@ function App() {
     setCursorMenu(true);
   }
 
-  function cursorMenuClick(event) {
-    const character = getRightAnswer(event.target.id);
+  async function cursorMenuClick(event) {
+    const character = await getRightAnswer(event.target.id);
     const characterFound = checkUserAnswer(character)
 
     if (characterFound) {
@@ -253,10 +253,13 @@ function App() {
 
 
   // CHANGE LEVEL LOGIC
-  function getRightAnswer(character) {
-    const currentChar = secret[currentLevel.name].find(
-      (el) => el.name === character
-    );
+  async function getRightAnswer(character) {
+    // const currentChar = secret[currentLevel.name].find(
+    //   (el) => el.name === character
+    // );
+
+    const currentChar = await getCoordsFromBase(currentLevel.name, character);
+
     return  {
       x: currentChar['coord']['x'],
       y: currentChar['coord']['y'],
@@ -319,18 +322,17 @@ function App() {
 
   function saveNameSubmit(event) {
     event.preventDefault();
-    // handle empty name
-    // if is empty make anonymus with date
-    // save to localstorage ?
     const checkedLeadername = leaderName == '' ? 
       `Anonymus ${getUniqId()}` : leaderName;
-    setBestTimes(oldBests => oldBests.map(
-      (oldBest) => {
-        return oldBest.level === currentLevel.name ? 
-          {...oldBest, times: [...oldBest.times, {name: checkedLeadername, time: currentTime}] } :
-          {...oldBest, times: oldBest.times };
-      }
-    ));
+    setBestTimes(oldBests => 
+      [...oldBests, {name: checkedLeadername, time: currentTime}]
+      
+      // oldBests.map(
+      // (oldBest) => {
+      //   return oldBest.level === currentLevel.name ? 
+      //     {...oldBest, times: [...oldBest.times, {name: checkedLeadername, time: currentTime}] } :
+      //     {...oldBest, times: oldBest.times };
+);
     startNextLevel();
   }
 
